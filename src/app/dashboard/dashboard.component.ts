@@ -61,7 +61,7 @@ export class DashboardComponent {
 
   users: User[] = [];
   showUserTable = false;
-  showSOPTable: boolean = false;
+  showSOPTable: boolean = true;
   showSessionTable: boolean = false;
   submitted: boolean = false;
   sessionSubmitted: boolean = false;
@@ -126,6 +126,7 @@ export class DashboardComponent {
     if(this.authService.getUserRole() == 'admin'){
       this.fetchDashboardSummary();
     }
+    this.fetchSOP();
   }
 
   fetchDashboardSummary(){

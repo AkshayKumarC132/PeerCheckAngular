@@ -8,8 +8,8 @@
             <span class="text-2xl font-bold text-gray-900">PeerCheck</span>
           </a>        <!-- Desktop Navigation Links -->
         <div class="nav-links" *ngIf="showNavigation">
-            <a [routerLink]="['/dashboard']" routerLinkActive="active">Dashboard</a>
             @if(this.authService.getUserRole() != 'reviewer'){
+            <a [routerLink]="['/dashboard']" routerLinkActive="active">Dashboard</a>
             <a [routerLink]="['/peer-session/start']" routerLinkActive="active">Peer Session</a>
             }
             @if(this.authService.getUserRole() != 'operator'){

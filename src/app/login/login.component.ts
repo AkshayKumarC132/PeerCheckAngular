@@ -51,7 +51,9 @@ export class LoginComponent {
           // Update auth status
           this.authService.updateAuthStatus(true);
           const role = localStorage.getItem('userRole') || 'operator';
-          this.router.navigate([role === 'admin' ? '/dashboard' : '/peer-session']);
+          this.router.navigate([
+            role === 'reviewer' ? '/monitor' : '/dashboard',
+          ]);
         }
       },
       (error) => {
@@ -77,5 +79,4 @@ export class LoginComponent {
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
-  
 }
