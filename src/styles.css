@@ -2,7 +2,8 @@
 
 :root {
   /* Light theme variables */
-  --background-color: #ffffff;
+  --background-color: #f9f9f9;
+  --secondary-bg-color: #fff;
   --text-color: #2c3e50;
   --border-color: #e0e0e0;
   --input-background: #ffffff;
@@ -15,7 +16,8 @@
 [data-theme="dark"] {
   /* Dark theme variables */
   --background-color: #1a1a1a;
-  --text-color: #e0e0e0;
+  --secondary-bg-color : #000;
+  --text-color: #f0f0f0;
   --border-color: #404040;
   --input-background: #2d2d2d;
   --shadow-color: rgba(164, 164, 164, 0.3);

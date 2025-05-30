@@ -20,6 +20,13 @@ import { HeaderComponent } from './header/header.component';
 import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
 import { CommonModule } from '@angular/common'; // Import CommonModule
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrModule } from 'ngx-toastr';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MonitorComponent } from './monitor/monitor.component';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { LoaderComponent } from './loader/loader.component';
+import { LoaderInterceptor } from './interceptors/loader.interceptor';
 
 // theme-toggle\theme-toggle.component
 
@@ -35,7 +42,9 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     PeerSessionComponent, // Add PeerSessionComponent
     HeaderComponent,
     ThemeToggleComponent,
-    DashboardComponent
+    DashboardComponent,
+    MonitorComponent,
+    LoaderComponent
   ],
   imports: [
     BrowserModule,
@@ -43,11 +52,19 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    NgbModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot(),
     CommonModule, // Add CommonModule
   ],
   providers: [
     provideClientHydration(),
     DatePipe, // Add DatePipe to providers
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoaderInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent],
 })
