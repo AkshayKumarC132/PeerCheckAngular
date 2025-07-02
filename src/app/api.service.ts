@@ -222,4 +222,13 @@ export class ApiService {
       }
     );
   }
+
+  // Rename speakers API
+  renameSpeakers(audioFileId: number, mapping: any): Observable<any> {
+    const token = localStorage.getItem('token');
+    return this.http.put(
+      `${this.baseUrl}audio-file/${audioFileId}/rename-speakers/` + token + '/',
+      { speaker_mapping: mapping }
+    );
+  }
 }

@@ -55,6 +55,9 @@ export class AudioProcessComponent implements OnInit {
   selectedSOPID!: number;
   users: User[] = [];
   selectedUserIds: number[] = [];
+  // Speaker editing state for each record
+  editingSpeakerIndex: number | null = null;
+  speakerEdits: { [key: string]: string } = {};
   constructor(
     private ngZone: NgZone,
     private apiService: ApiService,
@@ -463,4 +466,51 @@ export class AudioProcessComponent implements OnInit {
   // toggleViewKeywords(index: number, show: boolean): void {
   //   this.filteredAudioRecords[index].showKeywords = show;
   // }
+
+  // Start editing speakers for a record
+  startEditSpeakers(index: number, record: any): void {
+    this.editingSpeakerIndex = index;
+    this.speakerEdits = {};
+    if (record.parsedTranscription) {
+      record.parsedTranscription.forEach((line: any) => {
+        if (line.speaker && !this.speakerEdits[line.speaker]) {
+          this.speakerEdits[line.speaker] = line.speaker;
+        }
+      });
+    }
+  }
+
+  // Cancel editing
+  cancelEditSpeakers(): void {
+    this.editingSpeakerIndex = null;
+    this.speakerEdits = {};
+  }
+
+  // Save speaker edits
+  saveSpeakerEdits(record: any, index: number): void {
+    const mapping: any = {};
+    Object.keys(this.speakerEdits).forEach((oldName) => {
+      if (
+        oldName !== this.speakerEdits[oldName] &&
+        this.speakerEdits[oldName].trim()
+      ) {
+        mapping[oldName] = this.speakerEdits[oldName].trim();
+      }
+    });
+    if (Object.keys(mapping).length === 0) {
+      this.cancelEditSpeakers();
+      return;
+    }
+    this.apiService.renameSpeakers(record.id, mapping).subscribe({
+      next: (res) => {
+        Swal.fire('Success!', 'Speaker names updated!', 'success');
+        this.fetchAudioRecords();
+        this.cancelEditSpeakers();
+      },
+      error: (err) => {
+        Swal.fire('Error!', 'Failed to update speaker names.', 'error');
+        this.cancelEditSpeakers();
+      },
+    });
+  }
 }

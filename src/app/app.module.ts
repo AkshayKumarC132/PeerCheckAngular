@@ -27,6 +27,7 @@ import { MonitorComponent } from './monitor/monitor.component';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LoaderComponent } from './loader/loader.component';
 import { LoaderInterceptor } from './interceptors/loader.interceptor';
+import { SpeakerListPipe } from './audio-process/speaker-list.pipe';
 
 // theme-toggle\theme-toggle.component
 
@@ -44,7 +45,8 @@ import { LoaderInterceptor } from './interceptors/loader.interceptor';
     ThemeToggleComponent,
     DashboardComponent,
     MonitorComponent,
-    LoaderComponent
+    LoaderComponent,
+    SpeakerListPipe, // <-- Add the pipe here
   ],
   imports: [
     BrowserModule,
@@ -56,7 +58,7 @@ import { LoaderInterceptor } from './interceptors/loader.interceptor';
     BrowserAnimationsModule,
     ToastrModule.forRoot({
       positionClass: 'toast-top-right',
-      closeButton : true
+      closeButton: true,
     }),
     CommonModule, // Add CommonModule
   ],
@@ -66,7 +68,7 @@ import { LoaderInterceptor } from './interceptors/loader.interceptor';
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LoaderInterceptor,
-      multi: true
+      multi: true,
     },
   ],
   bootstrap: [AppComponent],
