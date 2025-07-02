@@ -11,7 +11,7 @@ interface User {
   role: string;
   is_active: boolean;
   id: number;
-  selected : boolean ;
+  selected: boolean;
 }
 
 @Component({
@@ -30,6 +30,13 @@ export class AudioProcessComponent implements OnInit {
   fetchErrorMessage: string | null = null;
   searchTerm: string = '';
 
+  // Pagination state
+  totalRecords: number = 0;
+  nextPageUrl: string | null = null;
+  prevPageUrl: string | null = null;
+  currentPage: number = 1;
+  pageSize: number = 10; // default, can be adjusted
+
   startPrompt: string = '';
   endPrompt: string = '';
   promptsMessage: string | null = null;
@@ -47,21 +54,26 @@ export class AudioProcessComponent implements OnInit {
   sops: any[] = [];
   selectedSOPID!: number;
   users: User[] = [];
-  selectedUserIds:number[] = []
-  constructor(private ngZone: NgZone,private apiService: ApiService, private router: Router, private changeDetector: ChangeDetectorRef) {}
+  selectedUserIds: number[] = [];
+  constructor(
+    private ngZone: NgZone,
+    private apiService: ApiService,
+    private router: Router,
+    private changeDetector: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.fetchAudioRecords();
     this.fetchUsers();
-    this.fetchSOP();    
+    this.fetchSOP();
   }
 
   updateSelectedUsers(): void {
-    let selectedUsers = this.users.filter(user => user.selected);
-    this.selectedUserIds = selectedUsers.map(user => user.id);
+    let selectedUsers = this.users.filter((user) => user.selected);
+    this.selectedUserIds = selectedUsers.map((user) => user.id);
   }
 
-  fetchUsers(){
+  fetchUsers() {
     this.apiService.getUsers().subscribe({
       next: (data: any) => {
         this.users = data.results;
@@ -69,10 +81,10 @@ export class AudioProcessComponent implements OnInit {
       error: (err) => {
         console.error(err);
       },
-    })
+    });
   }
 
-  fetchSOP(){
+  fetchSOP() {
     this.apiService.getSOPs().subscribe({
       next: (data: any) => {
         this.sops = data.results;
@@ -80,7 +92,7 @@ export class AudioProcessComponent implements OnInit {
       error: (err) => {
         console.error(err);
       },
-    })
+    });
   }
 
   addTag(): void {
@@ -91,18 +103,21 @@ export class AudioProcessComponent implements OnInit {
   }
 
   removeTag(tag: string): void {
-    this.tags = this.tags.filter(t => t !== tag);
+    this.tags = this.tags.filter((t) => t !== tag);
   }
 
   // Fetch audio records
-  fetchAudioRecords(): void {
-    this.apiService.fetchAudioRecords().subscribe({
+  fetchAudioRecords(pageUrl?: string): void {
+    const obs = pageUrl
+      ? this.apiService.fetchAudioRecordsByUrl(pageUrl)
+      : this.apiService.fetchAudioRecords();
+    obs.subscribe({
       next: (response) => {
         this.audioRecords = response.results.map((record: any) => {
           const parsed = Array.isArray(record.transcription)
             ? record.transcription
             : [];
-          const text = parsed.map((p:any) => p.text).join(' ');
+          const text = parsed.map((p: any) => p.text).join(' ');
           return {
             ...record,
             parsedTranscription: parsed,
@@ -110,6 +125,9 @@ export class AudioProcessComponent implements OnInit {
             showFull: false,
           };
         });
+        this.totalRecords = response.count;
+        this.nextPageUrl = response.next;
+        this.prevPageUrl = response.previous;
         this.changeDetector.detectChanges();
       },
       error: (err) => {
@@ -146,13 +164,13 @@ export class AudioProcessComponent implements OnInit {
     this.endPrompt = '';
     this.isRecording = false;
     this.isProcessing = false;
-     this.changeDetector.detectChanges();  // Ensures buttons are reset correctly
+    this.changeDetector.detectChanges(); // Ensures buttons are reset correctly
   }
 
   // Process audio
-  processAudio(isFileUpload ? :boolean): void {
+  processAudio(isFileUpload?: boolean): void {
     if (this.selectedFile) {
-      if(!isFileUpload){
+      if (!isFileUpload) {
         this.isProcessing = true;
       }
       const formData = new FormData();
@@ -160,7 +178,10 @@ export class AudioProcessComponent implements OnInit {
       formData.append('start_prompt', this.startPrompt);
       formData.append('end_prompt', this.endPrompt);
       formData.append('keywords', this.keywords);
-      formData.append('session_user_ids',JSON.stringify({'userIds':this.selectedUserIds}) );
+      formData.append(
+        'session_user_ids',
+        JSON.stringify({ userIds: this.selectedUserIds })
+      );
       formData.append('sop_id', this.selectedSOPID.toString());
 
       this.apiService.processAudio(formData).subscribe({
@@ -204,7 +225,7 @@ export class AudioProcessComponent implements OnInit {
             this.errorMessage = 'Failed to process audio. Please try again.';
             Swal.fire('Error!', this.errorMessage, 'error').then(() => {
               // Clear the prompts after processing
-              this.resetStateAfterProcessing();// Reload the page after success
+              this.resetStateAfterProcessing(); // Reload the page after success
             });
           }
         },
@@ -241,15 +262,17 @@ export class AudioProcessComponent implements OnInit {
           };
 
           this.mediaRecorder.onstop = () => {
-            this.ngZone.run(() => { 
-            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
-            // const audioBlob = new Blob(this.recordedChunks, { type: 'audio/wav' });
-            this.recordedAudioURL = URL.createObjectURL(blob);
-            this.convertToWav(blob);
-            this.isRecording = false;
-            this.isProcessing = true;
-            this.startPrompt = '';
-            this.endPrompt = '';
+            this.ngZone.run(() => {
+              const blob = new Blob(this.recordedChunks, {
+                type: 'audio/webm',
+              });
+              // const audioBlob = new Blob(this.recordedChunks, { type: 'audio/wav' });
+              this.recordedAudioURL = URL.createObjectURL(blob);
+              this.convertToWav(blob);
+              this.isRecording = false;
+              this.isProcessing = true;
+              this.startPrompt = '';
+              this.endPrompt = '';
             });
           };
 
@@ -385,11 +408,11 @@ export class AudioProcessComponent implements OnInit {
       (response) => {
         record.transcription = response.transcription;
         record.parsedTranscription = Array.isArray(response.transcription)
-        ? response.transcription
-        : [];
-      record.transcriptionText = record.parsedTranscription
-        .map((p: any) => p.text)
-        .join(' ');
+          ? response.transcription
+          : [];
+        record.transcriptionText = record.parsedTranscription
+          .map((p: any) => p.text)
+          .join(' ');
         record.detected_prompts = response.detected_prompts;
         record.keywords_detected = response.detected_keywords;
         Swal.fire(
@@ -403,6 +426,20 @@ export class AudioProcessComponent implements OnInit {
         Swal.fire('Error!', 'Error processing audio.', 'error');
       }
     );
+  }
+
+  goToNextPage() {
+    if (this.nextPageUrl) {
+      this.currentPage++;
+      this.fetchAudioRecords(this.nextPageUrl);
+    }
+  }
+
+  goToPrevPage() {
+    if (this.prevPageUrl) {
+      this.currentPage = Math.max(1, this.currentPage - 1);
+      this.fetchAudioRecords(this.prevPageUrl);
+    }
   }
 
   // formatFilePath(filePath: string): string {

@@ -167,6 +167,13 @@
         </div>
       </div>
 
+      <!-- Pagination Controls -->
+      <div class="pagination-controls" *ngIf="totalRecords > pageSize">
+        <button class="btn btn-secondary me-2" (click)="goToPrevPage()" [disabled]="!prevPageUrl">Previous</button>
+        <span>Page {{ currentPage }}</span>
+        <button class="btn btn-secondary ms-2" (click)="goToNextPage()" [disabled]="!nextPageUrl">Next</button>
+      </div>
+
       <!-- No Records Message -->
       <div *ngIf="filteredAudioRecords.length === 0" class="no-records">
         <i class="fas fa-folder-open"></i>

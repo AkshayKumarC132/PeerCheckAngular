@@ -1,4 +1,13 @@
-import { animate, keyframes, query, stagger, state, style, transition, trigger } from '@angular/animations';
+import {
+  animate,
+  keyframes,
+  query,
+  stagger,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { Component } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -23,25 +32,29 @@ interface User {
     // KPI Cards Animation
     trigger('kpiAnimation', [
       transition(':enter', [
-        query('.kpi-card', [
-          style({ 
-            opacity: 0, 
-            transform: 'translateY(30px) scale(0.9)' 
-          }),
-          stagger(150, [
-            animate('600ms cubic-bezier(0.35, 0, 0.25, 1)', 
-              style({ 
-                opacity: 1, 
-                transform: 'translateY(0) scale(1)' 
-              })
-            )
-          ])
-        ], { optional: true })
-      ])
+        query(
+          '.kpi-card',
+          [
+            style({
+              opacity: 0,
+              transform: 'translateY(30px) scale(0.9)',
+            }),
+            stagger(150, [
+              animate(
+                '600ms cubic-bezier(0.35, 0, 0.25, 1)',
+                style({
+                  opacity: 1,
+                  transform: 'translateY(0) scale(1)',
+                })
+              ),
+            ]),
+          ],
+          { optional: true }
+        ),
+      ]),
     ]),
 
     // Individual KPI Card Hover
-   
   ],
   styleUrls: ['./dashboard.component.css'],
 })
@@ -51,22 +64,46 @@ export class DashboardComponent {
   sopForm: FormGroup;
   sessionForm: FormGroup;
   kpis = [
-    { count: 0, label: 'Total Users', bg: 'bg-primary', hovered: true ,icon:"fas fa-users" },
-    { count: 0, label: 'Active Sessions', bg: 'bg-success', hovered: true ,icon:"fas fa-bolt" },
-    { count: 0, label: 'Total SOPs', bg: 'bg-info', hovered: true ,icon:"fas fa-file-alt" },
-    { count: 0, label: 'Pending Reviews', bg: 'bg-warning', hovered: true ,icon:"fas fa-tasks" }
+    {
+      count: 0,
+      label: 'Total Users',
+      bg: 'bg-primary',
+      hovered: true,
+      icon: 'fas fa-users',
+    },
+    {
+      count: 0,
+      label: 'Active Sessions',
+      bg: 'bg-success',
+      hovered: true,
+      icon: 'fas fa-bolt',
+    },
+    {
+      count: 0,
+      label: 'Total SOPs',
+      bg: 'bg-info',
+      hovered: true,
+      icon: 'fas fa-file-alt',
+    },
+    {
+      count: 0,
+      label: 'Pending Reviews',
+      bg: 'bg-warning',
+      hovered: true,
+      icon: 'fas fa-tasks',
+    },
   ];
   sops: any[] = [];
   showDetails: { [key: number]: boolean } = {};
 
   users: User[] = [];
   showUserTable = false;
-  showSOPTable: boolean = true;
+  showSOPTable = true;
   showSessionTable: boolean = false;
   submitted: boolean = false;
   sessionSubmitted: boolean = false;
   isEditing: boolean = false;
-  editingUserId!: number | null ;
+  editingUserId!: number | null;
   editingSOPId!: number | null;
   isSOPEditing: boolean = false;
   isSessionEditing: boolean = false;
@@ -75,25 +112,32 @@ export class DashboardComponent {
   sessions: any[] = [];
   audioFiles: any[] = [];
 
-  constructor(private modalService: NgbModal, private themeService: ThemeService,private apiService: ApiService,private fb: FormBuilder,private toasterService:ToastrService,public authService : AuthService) {
+  constructor(
+    private modalService: NgbModal,
+    private themeService: ThemeService,
+    private apiService: ApiService,
+    private fb: FormBuilder,
+    private toasterService: ToastrService,
+    public authService: AuthService
+  ) {
     this.createUserForm = this.fb.group({
       username: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['', [Validators.required]]
+      role: ['', [Validators.required]],
     });
     this.sopForm = this.fb.group({
       name: ['', Validators.required],
       version: ['', Validators.required],
-      steps: this.fb.array([])
+      steps: this.fb.array([]),
     });
     this.sessionForm = this.fb.group({
       name: ['', Validators.required],
       sop_id: [null, Validators.required],
       status: ['active', Validators.required],
-      audio_file_ids: [[], Validators.required]
+      audio_file_ids: [[], Validators.required],
     });
-    this.themeService.currentTheme$.subscribe(t => {
+    this.themeService.currentTheme$.subscribe((t) => {
       this.isDarkTheme = t === 'dark';
     });
   }
@@ -122,14 +166,17 @@ export class DashboardComponent {
     return user.username;
   }
 
-  ngOnInit(){
-    if(this.authService.getUserRole() == 'admin'){
-      this.fetchDashboardSummary();
+  ngOnInit() {
+    if (this.authService.getUserRole() != 'reviewer') {
+      this.fetchSOP();
+      if (this.authService.getUserRole() == 'admin') {
+        this.fetchDashboardSummary();
+      }
     }
-    this.fetchSOP();
+
   }
 
-  fetchDashboardSummary(){
+  fetchDashboardSummary() {
     this.apiService.getDashboardSummary().subscribe({
       next: (data: any) => {
         this.kpis[0].count = data.total_users;
@@ -142,11 +189,10 @@ export class DashboardComponent {
         console.error(err);
         this.toasterService.error('Failed to load data.', 'Error');
       },
-    })
+    });
   }
 
-  
-  fetchUsers(){
+  fetchUsers() {
     this.apiService.getUsers().subscribe({
       next: (data: any) => {
         this.users = data.results;
@@ -156,10 +202,10 @@ export class DashboardComponent {
         console.error(err);
         this.toasterService.error('Failed to load data.', 'Error');
       },
-    })
+    });
   }
 
-  fetchSOP(){
+  fetchSOP() {
     this.apiService.getSOPs().subscribe({
       next: (data: any) => {
         this.sops = data.results;
@@ -169,27 +215,26 @@ export class DashboardComponent {
         console.error(err);
         this.toasterService.error('Failed to load data.', 'Error');
       },
-    })
+    });
   }
 
-  editUser(userId : number,createUserModal: any){
-    this.apiService.getUserById(userId).subscribe(data => {
+  editUser(userId: number, createUserModal: any) {
+    this.apiService.getUserById(userId).subscribe((data) => {
       this.createUserForm.patchValue(data);
       this.createUserForm.controls['password'].disable(); // Disable the password field
       this.modalService.open(createUserModal, { centered: true });
       this.isEditing = true;
-      this.editingUserId = userId; 
+      this.editingUserId = userId;
     });
   }
 
-  
-  editSOP(sopId : number,createSOPModal: any){
-    this.apiService.getSOPById(sopId).subscribe((data:any) => {
+  editSOP(sopId: number, createSOPModal: any) {
+    this.apiService.getSOPById(sopId).subscribe((data: any) => {
       this.sopForm.patchValue(data);
       this.steps.clear();
       data.steps.forEach((step: any) => this.addStep(step));
       this.isSOPEditing = true;
-      this.editingSOPId = sopId; 
+      this.editingSOPId = sopId;
       this.modalService.open(createSOPModal, { centered: true });
     });
   }
@@ -200,13 +245,16 @@ export class DashboardComponent {
         if (result === 'Confirm') {
           this.apiService.deleteUser(userId).subscribe({
             next: (data: any) => {
-              this.toasterService.success('User deleted successfully!', 'Success');
+              this.toasterService.success(
+                'User deleted successfully!',
+                'Success'
+              );
             },
             error: (err) => {
               console.error(err);
               this.toasterService.error('Failed to delete item.', 'Error');
             },
-          })
+          });
         }
       },
       (reason) => {
@@ -221,13 +269,16 @@ export class DashboardComponent {
         if (result === 'Confirm') {
           this.apiService.deleteSOP(sopId).subscribe({
             next: (data: any) => {
-              this.toasterService.success('SOP deleted successfully!', 'Success');
+              this.toasterService.success(
+                'SOP deleted successfully!',
+                'Success'
+              );
             },
             error: (err) => {
               console.error(err);
               this.toasterService.error('Failed to delete item.', 'Error');
             },
-          })
+          });
         }
       },
       (reason) => {
@@ -235,43 +286,48 @@ export class DashboardComponent {
       }
     );
   }
-  
 
   onSubmit(modal: any): void {
     if (this.createUserForm.valid) {
       const formValue = this.createUserForm.getRawValue(); // Get form values including disabled fields
-      if(this.isEditing  && this.editingUserId !== null){
-        this.apiService.updateUser(this.editingUserId,formValue).subscribe({
+      if (this.isEditing && this.editingUserId !== null) {
+        this.apiService.updateUser(this.editingUserId, formValue).subscribe({
           next: (data: any) => {
             this.fetchUsers();
             this.isEditing = false;
             this.editingUserId = null;
             modal.dismiss();
-            this.toasterService.success('User updated successfully!', 'Success');
+            this.toasterService.success(
+              'User updated successfully!',
+              'Success'
+            );
             this.createUserForm.reset();
           },
           error: (err) => {
             console.error(err);
             this.toasterService.error('Failed to update item.', 'Error');
           },
-        })
+        });
       } else {
-      this.apiService.register(formValue).subscribe({
-        next: (data: any) => {
-          if(this.showUserTable){
-            this.fetchUsers();
-            this.fetchDashboardSummary();
-          }
-          modal.dismiss();
-          this.toasterService.success('User created successfully!', 'Success');
-          this.createUserForm.reset();
-        },
-        error: (err) => {
-          console.error(err);
-          this.toasterService.error('Failed to create item.', 'Error');
-        },
-      })
-    }
+        this.apiService.register(formValue).subscribe({
+          next: (data: any) => {
+            if (this.showUserTable) {
+              this.fetchUsers();
+              this.fetchDashboardSummary();
+            }
+            modal.dismiss();
+            this.toasterService.success(
+              'User created successfully!',
+              'Success'
+            );
+            this.createUserForm.reset();
+          },
+          error: (err) => {
+            console.error(err);
+            this.toasterService.error('Failed to create item.', 'Error');
+          },
+        });
+      }
       console.log(this.createUserForm.value);
       // Handle form submission
     }
@@ -283,9 +339,15 @@ export class DashboardComponent {
 
   addStep(stepData: any = null) {
     const step = this.fb.group({
-      step_number: [stepData?.step_number || this.steps.length + 1, Validators.required],
+      step_number: [
+        stepData?.step_number || this.steps.length + 1,
+        Validators.required,
+      ],
       instruction_text: [stepData?.instruction_text || '', Validators.required],
-      expected_keywords: [stepData?.expected_keywords || '', Validators.required]
+      expected_keywords: [
+        stepData?.expected_keywords || '',
+        Validators.required,
+      ],
     });
     this.steps.push(step);
   }
@@ -294,7 +356,7 @@ export class DashboardComponent {
     this.steps.removeAt(index);
   }
 
-  resetSOPSteps(){
+  resetSOPSteps() {
     while (this.steps.length !== 0) {
       this.steps.removeAt(0);
     }
@@ -303,41 +365,46 @@ export class DashboardComponent {
   onSOPSubmit(modal: any) {
     this.submitted = true;
     if (this.sopForm.valid) {
-      if(this.isSOPEditing  && this.editingSOPId !== null){
-        this.apiService.updateSOP(this.editingSOPId,this.sopForm.value).subscribe({
+      if (this.isSOPEditing && this.editingSOPId !== null) {
+        this.apiService
+          .updateSOP(this.editingSOPId, this.sopForm.value)
+          .subscribe({
+            next: (data: any) => {
+              this.fetchSOP();
+              this.isSOPEditing = false;
+              this.editingSOPId = null;
+              modal.dismiss();
+              this.toasterService.success(
+                'SOP updated successfully!',
+                'Success'
+              );
+              this.sopForm.reset();
+              this.resetSOPSteps();
+            },
+            error: (err) => {
+              console.error(err);
+              this.toasterService.error('Failed to update.', 'Error');
+            },
+          });
+      } else {
+        this.apiService.saveSOP(this.sopForm.value).subscribe({
           next: (data: any) => {
-            this.fetchSOP();
-            this.isSOPEditing = false;
-            this.editingSOPId = null;
             modal.dismiss();
-            this.toasterService.success('SOP updated successfully!', 'Success');
+            if (this.showSOPTable) {
+              this.fetchSOP();
+              this.fetchDashboardSummary();
+            }
+            this.submitted = false;
             this.sopForm.reset();
             this.resetSOPSteps();
+            this.toasterService.success('SOP created successfully!', 'Success');
           },
           error: (err) => {
             console.error(err);
-            this.toasterService.error('Failed to update.', 'Error');
+            this.toasterService.error('Failed to create.', 'Error');
           },
-        })
-      } else {
-      this.apiService.saveSOP(this.sopForm.value).subscribe({
-        next: (data: any) => {
-          modal.dismiss();
-          if(this.showSOPTable){
-            this.fetchSOP();
-            this.fetchDashboardSummary();
-          }
-          this.submitted = false;
-          this.sopForm.reset();
-          this.resetSOPSteps();
-          this.toasterService.success('SOP created successfully!', 'Success');
-        },
-        error: (err) => {
-          console.error(err);
-          this.toasterService.error('Failed to create.', 'Error');
-        },
-      })
-    }
+        });
+      }
     }
   }
 
@@ -357,7 +424,7 @@ export class DashboardComponent {
       error: (err) => {
         console.error(err);
         this.toasterService.error('Failed to load data.', 'Error');
-      }
+      },
     });
   }
 
@@ -369,7 +436,7 @@ export class DashboardComponent {
       error: (err) => {
         console.error(err);
         this.toasterService.error('Failed to load data.', 'Error');
-      }
+      },
     });
   }
 
@@ -388,7 +455,7 @@ export class DashboardComponent {
         name: data.name,
         sop_id: data.sop_details.id,
         status: data.status,
-        audio_file_ids: data.audio_file_ids
+        audio_file_ids: data.audio_file_ids,
       });
       this.isSessionEditing = true;
       this.editingSessionId = sessionId;
@@ -402,20 +469,25 @@ export class DashboardComponent {
     this.sessionSubmitted = true;
     if (this.sessionForm.valid) {
       if (this.isSessionEditing && this.editingSessionId !== null) {
-        this.apiService.updateSession(this.editingSessionId, this.sessionForm.value).subscribe({
-          next: () => {
-            this.fetchSessions();
-            this.isSessionEditing = false;
-            this.editingSessionId = null;
-            modal.dismiss();
-            this.toasterService.success('Session updated successfully!', 'Success');
-            this.sessionForm.reset();
-          },
-          error: (err) => {
-            console.error(err);
-            this.toasterService.error('Failed to update.', 'Error');
-          }
-        });
+        this.apiService
+          .updateSession(this.editingSessionId, this.sessionForm.value)
+          .subscribe({
+            next: () => {
+              this.fetchSessions();
+              this.isSessionEditing = false;
+              this.editingSessionId = null;
+              modal.dismiss();
+              this.toasterService.success(
+                'Session updated successfully!',
+                'Success'
+              );
+              this.sessionForm.reset();
+            },
+            error: (err) => {
+              console.error(err);
+              this.toasterService.error('Failed to update.', 'Error');
+            },
+          });
       } else {
         this.apiService.createSession(this.sessionForm.value).subscribe({
           next: () => {
@@ -426,12 +498,15 @@ export class DashboardComponent {
             modal.dismiss();
             this.sessionSubmitted = false;
             this.sessionForm.reset();
-            this.toasterService.success('Session created successfully!', 'Success');
+            this.toasterService.success(
+              'Session created successfully!',
+              'Success'
+            );
           },
           error: (err) => {
             console.error(err);
             this.toasterService.error('Failed to create.', 'Error');
-          }
+          },
         });
       }
     }
@@ -444,12 +519,15 @@ export class DashboardComponent {
           this.apiService.deleteSession(sessionId).subscribe({
             next: () => {
               this.fetchSessions();
-              this.toasterService.success('Session deleted successfully!', 'Success');
+              this.toasterService.success(
+                'Session deleted successfully!',
+                'Success'
+              );
             },
             error: (err) => {
               console.error(err);
               this.toasterService.error('Failed to delete item.', 'Error');
-            }
+            },
           });
         }
       },
