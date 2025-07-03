@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { ApiService } from '../api.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { ChangeDetectorRef } from '@angular/core';
 import { NgZone } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+
 interface User {
   username: string;
   email: string;
@@ -58,11 +60,15 @@ export class AudioProcessComponent implements OnInit {
   // Speaker editing state for each record
   editingSpeakerIndex: number | null = null;
   speakerEdits: { [key: string]: string } = {};
+  @ViewChild('transcriptionModal') transcriptionModal!: TemplateRef<any>;
+  selectedRecord: any = null;
+
   constructor(
     private ngZone: NgZone,
     private apiService: ApiService,
     private router: Router,
-    private changeDetector: ChangeDetectorRef
+    private changeDetector: ChangeDetectorRef,
+    private modalService: NgbModal
   ) {}
 
   ngOnInit(): void {
@@ -511,6 +517,15 @@ export class AudioProcessComponent implements OnInit {
         Swal.fire('Error!', 'Failed to update speaker names.', 'error');
         this.cancelEditSpeakers();
       },
+    });
+  }
+
+  openTranscriptionModal(record: any) {
+    this.selectedRecord = record;
+    this.modalService.open(this.transcriptionModal, {
+      ariaLabelledBy: 'modal-basic-title',
+      size: 'lg',
+      scrollable: true,
     });
   }
 }

@@ -28,6 +28,8 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LoaderComponent } from './loader/loader.component';
 import { LoaderInterceptor } from './interceptors/loader.interceptor';
 import { SpeakerListPipe } from './audio-process/speaker-list.pipe';
+import { MarkdownModule } from 'ngx-markdown';
+
 
 // theme-toggle\theme-toggle.component
 
@@ -61,6 +63,7 @@ import { SpeakerListPipe } from './audio-process/speaker-list.pipe';
       closeButton: true,
     }),
     CommonModule, // Add CommonModule
+    MarkdownModule.forRoot(),
   ],
   providers: [
     provideClientHydration(),
